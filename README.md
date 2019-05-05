@@ -3,13 +3,6 @@
 A simple tetris clone written in
 [zig programming language](https://github.com/andrewrk/zig).
 
-[YouTube Demo](https://www.youtube.com/watch?v=AiintPutWrE).
-
-
-![](http://i.imgur.com/umuNndz.png)
-
-[Windows 64-bit build](http://superjoe.s3.amazonaws.com/temp/tetris.zip)
-
 ## Controls
 
  * Left/Right/Down Arrow - Move piece left/right/down.
@@ -23,12 +16,11 @@ A simple tetris clone written in
 ## Dependencies
 
  * [Zig compiler](https://github.com/andrewrk/zig) - use the debug build.
- * [libepoxy](https://github.com/anholt/libepoxy)
- * [GLFW](http://www.glfw.org/)
- * [libpng](http://www.libpng.org/pub/png/libpng.html)
 
 ## Building and Running
 
 ```
-zig build play
+zig build-exe -target wasm32-freestanding --release-small src/main.zig
 ```
+
+And run a local http server on the project root

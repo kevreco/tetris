@@ -1,20 +1,20 @@
+use @import("math3d.zig");
+
 const std = @import("std");
-const os = std.os;
-const panic = std.debug.panic;
 const assert = std.debug.assert;
 const bufPrint = std.fmt.bufPrint;
-const c = @import("c.zig");
 const debug_gl = @import("debug_gl.zig");
-use @import("math3d.zig");
 const AllShaders = @import("all_shaders.zig").AllShaders;
 const static_geometry = @import("static_geometry.zig");
 const StaticGeometry = static_geometry.StaticGeometry;
 const pieces = @import("pieces.zig");
 const Piece = pieces.Piece;
 const Spritesheet = @import("spritesheet.zig").Spritesheet;
+const embedImage = @import("spritesheet.zig").embedImage;
+
+const c = @import("webgl.zig");
 
 const Tetris = struct {
-    window: *c.GLFWwindow,
     all_shaders: AllShaders,
     static_geometry: StaticGeometry,
     projection: Mat4x4,
@@ -115,124 +115,69 @@ const time_per_level = 60.0;
 const empty_row = []Cell{Cell{ .Empty = {} }} ** grid_width;
 const empty_grid = [][grid_width]Cell{empty_row} ** grid_height;
 
-extern fn errorCallback(err: c_int, description: [*c]const u8) void {
-    panic("Error: {}\n", description);
-}
-
-extern fn keyCallback(window: ?*c.GLFWwindow, key: c_int, scancode: c_int, action: c_int, mods: c_int) void {
-    if (action != c.GLFW_PRESS) return;
-    const t = @ptrCast(*Tetris, @alignCast(@alignOf(Tetris), c.glfwGetWindowUserPointer(window).?));
-
-    switch (key) {
-        c.GLFW_KEY_ESCAPE => c.glfwSetWindowShouldClose(window, c.GL_TRUE),
-        c.GLFW_KEY_SPACE => userDropCurPiece(t),
-        c.GLFW_KEY_DOWN => userCurPieceFall(t),
-        c.GLFW_KEY_LEFT => userMoveCurPiece(t, -1),
-        c.GLFW_KEY_RIGHT => userMoveCurPiece(t, 1),
-        c.GLFW_KEY_UP => userRotateCurPiece(t, 1),
-        c.GLFW_KEY_LEFT_SHIFT, c.GLFW_KEY_RIGHT_SHIFT => userRotateCurPiece(t, -1),
-        c.GLFW_KEY_R => restartGame(t),
-        c.GLFW_KEY_P => userTogglePause(t),
-        c.GLFW_KEY_LEFT_CONTROL, c.GLFW_KEY_RIGHT_CONTROL => userSetHoldPiece(t),
-        else => {},
-    }
+export fn onKey(keyCode: c_int, state: u8) void {
+  if (state == 0) return;
+  const t = &tetris_state;
+  c.consoleLog(keyCode);
+  c.consoleLog(state);
+  switch (keyCode) {
+      c.KEY_ESCAPE, c.KEY_P => userTogglePause(t),
+      c.KEY_SPACE => userDropCurPiece(t),
+      c.KEY_DOWN => userCurPieceFall(t),
+      c.KEY_LEFT => userMoveCurPiece(t, -1),
+      c.KEY_RIGHT => userMoveCurPiece(t, 1),
+      c.KEY_UP => userRotateCurPiece(t, 1),
+      c.KEY_SHIFT => userRotateCurPiece(t, -1),
+      c.KEY_R => restartGame(t),
+      c.KEY_CTRL => userSetHoldPiece(t),
+      else => {},
+  }
 }
 
 var tetris_state: Tetris = undefined;
 
-const font_png = @embedFile("../assets/font.png");
+const font_raw = embedImage("../assets/font.bin",  576, 128, 32);
 
-pub fn main() !void {
-    _ = c.glfwSetErrorCallback(errorCallback);
-
-    if (c.glfwInit() == c.GL_FALSE) {
-        panic("GLFW init failure\n");
-    }
-    defer c.glfwTerminate();
-
-    c.glfwWindowHint(c.GLFW_CONTEXT_VERSION_MAJOR, 3);
-    c.glfwWindowHint(c.GLFW_CONTEXT_VERSION_MINOR, 2);
-    c.glfwWindowHint(c.GLFW_OPENGL_FORWARD_COMPAT, c.GL_TRUE);
-    c.glfwWindowHint(c.GLFW_OPENGL_DEBUG_CONTEXT, debug_gl.is_on);
-    c.glfwWindowHint(c.GLFW_OPENGL_PROFILE, c.GLFW_OPENGL_CORE_PROFILE);
-    c.glfwWindowHint(c.GLFW_DEPTH_BITS, 0);
-    c.glfwWindowHint(c.GLFW_STENCIL_BITS, 8);
-    c.glfwWindowHint(c.GLFW_RESIZABLE, c.GL_FALSE);
-
-    var window = c.glfwCreateWindow(window_width, window_height, c"Tetris", null, null) orelse {
-        panic("unable to create window\n");
-    };
-    defer c.glfwDestroyWindow(window);
-
-    _ = c.glfwSetKeyCallback(window, keyCallback);
-    c.glfwMakeContextCurrent(window);
-    c.glfwSwapInterval(1);
-
-    // create and bind exactly one vertex array per context and use
-    // glVertexAttribPointer etc every frame.
-    var vertex_array_object: c.GLuint = undefined;
-    c.glGenVertexArrays(1, &vertex_array_object);
-    c.glBindVertexArray(vertex_array_object);
-    defer c.glDeleteVertexArrays(1, &vertex_array_object);
-
+export fn onInit() void {
     const t = &tetris_state;
-    c.glfwGetFramebufferSize(window, &t.framebuffer_width, &t.framebuffer_height);
-    assert(t.framebuffer_width >= window_width);
-    assert(t.framebuffer_height >= window_height);
 
-    t.window = window;
+    t.framebuffer_width = 500;
+    t.framebuffer_height = 660;
 
-    t.all_shaders = try AllShaders.create();
-    defer t.all_shaders.destroy();
+    t.all_shaders = AllShaders.create();
+    //defer t.all_shaders.destroy();
 
     t.static_geometry = StaticGeometry.create();
-    defer t.static_geometry.destroy();
+    //defer t.static_geometry.destroy();
 
-    t.font.init(font_png, font_char_width, font_char_height) catch {
-        panic("unable to read assets\n");
-    };
-    defer t.font.deinit();
+    t.font.init(font_raw, font_char_width, font_char_height) catch unreachable;
+    //defer t.font.deinit();
 
-    var seed_bytes: [@sizeOf(u64)]u8 = undefined;
-    os.getRandomBytes(seed_bytes[0..]) catch |err| {
-        panic("unable to seed random number generator: {}", err);
-    };
+    var seed_bytes: [@sizeOf(u64)]u8 = "12341234";
     t.prng = std.rand.DefaultPrng.init(std.mem.readIntNative(u64, &seed_bytes));
     t.rand = &t.prng.random;
 
     resetProjection(t);
-
     restartGame(t);
 
     c.glClearColor(0.0, 0.0, 0.0, 1.0);
     c.glEnable(c.GL_BLEND);
     c.glBlendFunc(c.GL_SRC_ALPHA, c.GL_ONE_MINUS_SRC_ALPHA);
+    c.glEnable(c.GL_DEPTH_TEST);
+    c.glDepthFunc(c.GL_LEQUAL);
     c.glPixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
-
     c.glViewport(0, 0, t.framebuffer_width, t.framebuffer_height);
-    c.glfwSetWindowUserPointer(window, @ptrCast(*c_void, t));
+}
 
-    debug_gl.assertNoError();
+var prev_time: c_int = 0;
+export fn onAnimationFrame(now_time: c_int) void {
+    const t = &tetris_state;
+    const elapsed = @intToFloat(f32, now_time - prev_time) / 1000.0;
+    prev_time = now_time;
 
-    const start_time = c.glfwGetTime();
-    var prev_time = start_time;
-
-    while (c.glfwWindowShouldClose(window) == c.GL_FALSE) {
-        c.glClear(c.GL_COLOR_BUFFER_BIT | c.GL_DEPTH_BUFFER_BIT | c.GL_STENCIL_BUFFER_BIT);
-
-        const now_time = c.glfwGetTime();
-        const elapsed = now_time - prev_time;
-        prev_time = now_time;
-
-        nextFrame(t, elapsed);
-
-        draw(t);
-        c.glfwSwapBuffers(window);
-
-        c.glfwPollEvents();
-    }
-
-    debug_gl.assertNoError();
+    c.glClear(c.GL_COLOR_BUFFER_BIT | c.GL_DEPTH_BUFFER_BIT | c.GL_STENCIL_BUFFER_BIT);
+    nextFrame(t, elapsed);
+    draw(t);
 }
 
 fn fillRectMvp(t: *Tetris, color: Vec4, mvp: Mat4x4) void {
@@ -242,7 +187,7 @@ fn fillRectMvp(t: *Tetris, color: Vec4, mvp: Mat4x4) void {
 
     c.glBindBuffer(c.GL_ARRAY_BUFFER, t.static_geometry.rect_2d_vertex_buffer);
     c.glEnableVertexAttribArray(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position));
-    c.glVertexAttribPointer(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position), 3, c.GL_FLOAT, c.GL_FALSE, 0, null);
+    c.glVertexAttribPointer(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position), 3, c.GL_FLOAT, c.GL_FALSE, 0, 0);
 
     c.glDrawArrays(c.GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -264,7 +209,7 @@ fn drawParticle(t: *Tetris, p: Particle) void {
 
     c.glBindBuffer(c.GL_ARRAY_BUFFER, t.static_geometry.triangle_2d_vertex_buffer);
     c.glEnableVertexAttribArray(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position));
-    c.glVertexAttribPointer(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position), 3, c.GL_FLOAT, c.GL_FALSE, 0, null);
+    c.glVertexAttribPointer(@intCast(c.GLuint, t.all_shaders.primitive_attrib_position), 3, c.GL_FLOAT, c.GL_FALSE, 0, 0);
 
     c.glDrawArrays(c.GL_TRIANGLE_STRIP, 0, 3);
 }
@@ -464,7 +409,7 @@ fn nextFrame(t: *Tetris, elapsed: f64) void {
         } else {
             const rate = 8; // oscillations per sec
             const amplitude = 4; // pixels
-            const offset = @floatCast(f32, amplitude * -c.sin(2.0 * PI * t.screen_shake_elapsed * rate));
+            const offset = @floatCast(f32, amplitude * -std.math.sin(2.0 * PI * t.screen_shake_elapsed * rate));
             t.projection = mat4x4Ortho(
                 0.0,
                 @intToFloat(f32, t.framebuffer_width),
