@@ -23,9 +23,6 @@ pub const AllShaders = struct {
     pub fn create() AllShaders {
         var as: AllShaders = undefined;
 
-        var vertex_array_object: c.GLuint = c.glCreateVertexArray();
-        c.glBindVertexArray(vertex_array_object);
-
         as.primitive = ShaderProgram.create(
             \\#version 300 es
             \\precision mediump float;

@@ -144,6 +144,9 @@ export fn onInit() void {
     t.framebuffer_width = 500;
     t.framebuffer_height = 660;
 
+    const vao: c.GLuint = c.glCreateVertexArray();
+    c.glBindVertexArray(vao);
+
     t.all_shaders = AllShaders.create();
     //defer t.all_shaders.destroy();
 
@@ -324,6 +327,8 @@ fn draw(t: *Tetris) void {
             drawParticle(t, particle);
         }
     }
+
+    debug_gl.assertNoError();
 }
 
 fn drawText(t: *Tetris, text: []const u8, left: i32, top: i32, size: f32) void {
@@ -332,7 +337,6 @@ fn drawText(t: *Tetris, text: []const u8, left: i32, top: i32, size: f32) void {
             const char_left = @intToFloat(f32, left) + @intToFloat(f32, i * font_char_width) * size;
             const model = mat4x4_identity.translate(char_left, @intToFloat(f32, top), 0.0).scale(size, size, 0.0);
             const mvp = t.projection.mult(model);
-
             t.font.draw(t.all_shaders, col, mvp);
         } else {
             unreachable;

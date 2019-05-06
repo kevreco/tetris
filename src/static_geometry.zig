@@ -18,9 +18,8 @@ pub const StaticGeometry = struct {
         };
         
         sg.rect_2d_vertex_buffer = c.glCreateBuffer();
-        const rect_2d_vlen = 4 * 3 * @sizeOf(c.GLfloat);
         c.glBindBuffer(c.GL_ARRAY_BUFFER, sg.rect_2d_vertex_buffer);
-        c.glBufferData(c.GL_ARRAY_BUFFER, &rect_2d_vertexes[0][0], rect_2d_vlen, c.GL_STATIC_DRAW);
+        c.glBufferData(c.GL_ARRAY_BUFFER, &rect_2d_vertexes[0][0], 4 * 3 * @sizeOf(c.GLfloat), c.GL_STATIC_DRAW);
 
         const rect_2d_tex_coords = [][2]c.GLfloat{
             []c.GLfloat{ 0, 0 },
@@ -30,9 +29,8 @@ pub const StaticGeometry = struct {
         };
         
         sg.rect_2d_tex_coord_buffer = c.glCreateBuffer();
-        const rect_2d_tlen = 4 * 2 * @sizeOf(c.GLfloat);
         c.glBindBuffer(c.GL_ARRAY_BUFFER, sg.rect_2d_tex_coord_buffer);
-        c.glBufferData(c.GL_ARRAY_BUFFER, &rect_2d_tex_coords[0][0], rect_2d_tlen, c.GL_STATIC_DRAW);
+        c.glBufferData(c.GL_ARRAY_BUFFER, &rect_2d_tex_coords[0][0], 4 * 2 * @sizeOf(c.GLfloat), c.GL_STATIC_DRAW);
 
         const triangle_2d_vertexes = [][3]c.GLfloat{
             []c.GLfloat{ 0.0, 0.0, 0.0 },
@@ -41,9 +39,8 @@ pub const StaticGeometry = struct {
         };
 
         sg.triangle_2d_vertex_buffer = c.glCreateBuffer();
-        const triangle_2d_vlen = 3 * 3 * @sizeOf(c.GLfloat);
         c.glBindBuffer(c.GL_ARRAY_BUFFER, sg.triangle_2d_vertex_buffer);
-        c.glBufferData(c.GL_ARRAY_BUFFER, &triangle_2d_vertexes[0][0], triangle_2d_vlen, c.GL_STATIC_DRAW);
+        c.glBufferData(c.GL_ARRAY_BUFFER, &triangle_2d_vertexes[0][0], 3 * 3 * @sizeOf(c.GLfloat), c.GL_STATIC_DRAW);
 
         const triangle_2d_tex_coords = [][2]c.GLfloat{
             []c.GLfloat{ 0, 0 },
@@ -52,9 +49,8 @@ pub const StaticGeometry = struct {
         };
         
         sg.triangle_2d_tex_coord_buffer = c.glCreateBuffer();
-        const triangle_2d_tlen = 3 * 2 * @sizeOf(c.GLfloat);
         c.glBindBuffer(c.GL_ARRAY_BUFFER, sg.triangle_2d_tex_coord_buffer);
-        c.glBufferData(c.GL_ARRAY_BUFFER, &triangle_2d_tex_coords[0][0], triangle_2d_tlen, c.GL_STATIC_DRAW);
+        c.glBufferData(c.GL_ARRAY_BUFFER, &triangle_2d_tex_coords[0][0], 3 * 2 * @sizeOf(c.GLfloat), c.GL_STATIC_DRAW);
 
         return sg;
     }

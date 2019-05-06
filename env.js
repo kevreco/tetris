@@ -77,7 +77,7 @@ const glCreateBuffers = (num, dataPtr) => {
   const buffers = new Uint32Array(memory.buffer, dataPtr, num);
   for (let n = 0; n < num; n++) {
     const b = glCreateBuffer();
-    buffers[n] = glBuffers[b];
+    buffers[n] = b;
   }
 }
 
@@ -119,7 +119,7 @@ const glCreateVertexArray = () => {
   return glVertexArrays.length - 1;
 };
 
-const glBindVertexArray = (target) => gl.bindVertexArray(glVertexArrays[target]);
+const glBindVertexArray = (id) => gl.bindVertexArray(glVertexArrays[id]);
 const glPixelStorei = (type, alignment) => gl.pixelStorei(type, alignment);
 const glGetError = () => gl.getError();
 
@@ -172,6 +172,7 @@ var env = {
   glGetError,
   consoleLog, 
   consoleLogF: consoleLog, 
+  consoleLogS: consoleLog, 
   playAudio,
   setScore
 };
