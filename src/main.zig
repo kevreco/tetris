@@ -136,7 +136,7 @@ export fn onKey(keyCode: c_int, state: u8) void {
 
 var tetris_state: Tetris = undefined;
 
-const font_raw = embedImage("../assets/font.bin",  576, 128, 32);
+const font_raw = embedImage("../assets/fontx.bin",  576, 128, 32);
 
 export fn onInit() void {
     const t = &tetris_state;
