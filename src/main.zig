@@ -11,6 +11,7 @@ const pieces = @import("pieces.zig");
 const Piece = pieces.Piece;
 const Spritesheet = @import("spritesheet.zig").Spritesheet;
 const embedImage = @import("spritesheet.zig").embedImage;
+const canvas2d = @import("canvas.zig");
 
 const c = @import("webgl.zig");
 
@@ -64,6 +65,17 @@ const Particle = struct {
     angle: f32,
     angle_vel: f32,
 };
+
+pub const Particle2D = extern struct {
+    x: f32,
+    y: f32,
+    vx: f32,
+    vy: f32,
+};
+
+pub var particles: [100]Particle2D = undefined;
+pub var canvas_width: c_int = undefined;
+pub var canvas_height: c_int = undefined;
 
 const PI = 3.14159265358979;
 const max_particle_count = 500;
@@ -175,13 +187,16 @@ export fn onInit() void {
     resetProjection(t);
     restartGame(t);
 
-    c.glClearColor(0.0, 0.0, 0.0, 1.0);
+    c.glClearColor(0.0, 0.0, 0.0, 0.0);
     c.glEnable(c.GL_BLEND);
     c.glBlendFunc(c.GL_SRC_ALPHA, c.GL_ONE_MINUS_SRC_ALPHA);
     c.glEnable(c.GL_DEPTH_TEST);
     c.glDepthFunc(c.GL_LEQUAL);
     c.glPixelStorei(c.GL_UNPACK_ALIGNMENT, 1);
     c.glViewport(0, 0, t.framebuffer_width, t.framebuffer_height);
+
+    canvas_width = canvas2d.getCanvasWidth();
+    canvas_height = canvas2d.getCanvasHeight();
 }
 
 var prev_time: c_int = 0;
@@ -191,8 +206,12 @@ export fn onAnimationFrame(now_time: c_int) void {
     prev_time = now_time;
 
     c.glClear(c.GL_COLOR_BUFFER_BIT | c.GL_DEPTH_BUFFER_BIT | c.GL_STENCIL_BUFFER_BIT);
+    
     nextFrame(t, elapsed);
     draw(t);
+
+    nextFrame2d(t, elapsed);
+    draw2d(t);
 }
 
 fn fillRectMvp(t: *Tetris, color: Vec4, mvp: Mat4x4) void {
@@ -242,6 +261,16 @@ fn drawCenteredText(t: *Tetris, text: []const u8) void {
     const draw_left = board_left + board_width / 2 - @divExact(label_width, 2);
     const draw_top = board_top + board_height / 2 - font_char_height / 2;
     drawText(t, text, draw_left, draw_top, 1.0);
+}
+
+fn draw2d(t: *Tetris) void {
+    canvas2d.clearRect(0, 0, canvas_width, canvas_height);
+    canvas2d.setFillColor(255, 255, 255, 255);
+    canvas2d.fillRect(0, 0, 128, 12);
+
+    canvas2d.setFillColor(0, 0, 0, 255);
+    var text = "This text is on a 2D Canvas";
+    canvas2d.fillText(&text[0], text.len, 0, 10);
 }
 
 fn draw(t: *Tetris) void {
@@ -372,7 +401,28 @@ fn drawPieceWithColor(t: *Tetris, piece: Piece, left: i32, top: i32, rot: usize,
     }
 }
 
-fn nextFrame(t: *Tetris, elapsed: f64) void {
+pub fn bounce(position: *f32, velocity: *f32, minValue: f32, maxValue: f32) void {
+    if (position.* > maxValue) {
+        position.* -= (position.* - maxValue) * 2;
+        velocity.* = (-velocity.*);
+    } else if (position.* < minValue) {
+        position.* = (minValue + (minValue - position.*) * 2);
+        velocity.* = (-velocity.*);
+    }
+}
+
+fn nextFrame2d(t: *Tetris, elapsed: f32) void {
+    var i: u32 = 0;
+    while (i < 100) : (i += 1) {
+        particles[i].vy += 32;
+        particles[i].x += particles[i].vx * elapsed;
+        particles[i].y += particles[i].vy * elapsed;
+        bounce(&particles[i].x, &particles[i].vx, 0, @intToFloat(f32, canvas_width - 10));
+        bounce(&particles[i].y, &particles[i].vy, 0, @intToFloat(f32, canvas_height - 10));
+    }
+}
+
+fn nextFrame(t: *Tetris, elapsed: f32) void {
     if (t.is_paused) return;
 
     for (t.falling_blocks) |*maybe_p| {

@@ -12,6 +12,28 @@ const readCharStr = (ptr, len) => {
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const audioBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2.0, audioCtx.sampleRate);
 
+const canvas2d = document.getElementById("canvas2d");
+const ctx2d = canvas2d.getContext('2d');
+
+const setFillColor = (r, g, b, a) => {
+    ctx2d.fillStyle = `rgba(${r},${g},${b},${a / 255.0})`;
+}
+
+const fillRect = (x, y, w, h) => {
+  ctx2d.fillRect(x, y, w, h);
+}
+
+const fillText = (dataPtr, dataLen, w, h) => {
+  ctx2d.fillText(readCharStr(dataPtr, dataLen), w, h);
+}
+
+const clearRect = (x, y, w, h) => {
+    ctx2d.clearRect(x, y, w, h);
+}
+
+const getCanvasWidth = () => canvas2d.width;
+const getCanvasHeight = () => canvas2d.height;
+
 const canvas = document.getElementById("canvas");
 const gl = canvas.getContext('webgl2');
 gl.viewport(0, 0, canvas.width, canvas.height);
@@ -174,5 +196,11 @@ var env = {
   consoleLogF: consoleLog, 
   consoleLogS: consoleLog, 
   playAudio,
-  setScore
+  setScore,
+  setFillColor,
+  fillRect,
+  fillText,
+  clearRect,
+  getCanvasWidth,
+  getCanvasHeight
 };

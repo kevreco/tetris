@@ -20,8 +20,16 @@
       margin: 1em auto;
     }
 
-    .text-center {
+    .wrapper {
       text-align: center;
+      position: relative;
+    }
+
+    .overlay {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      z-index: 10;
     }
 
     hr {
@@ -36,8 +44,9 @@
     <p>A simple tetris clone written in the <a href="http://ziglang.org">Zig</a> programming language, running on WebGL and WASM. <a href="https://github.com/raulgrell/tetris">Source</a>.</p>
     <p> ← ↓ → Move · ⎵ Drop · ↑ Rotate CW · [Shift] Rotate CCW · [Ctrl] Hold · [R]estart · [P]ause</p>
     <hr>
-    <div class="text-center">
+    <div class="wrapper">
       <canvas id="canvas" width="500" height="660"></canvas>
+      <canvas id="canvas2d" class="overlay" width="500" height="660"></canvas>
     </div>
     <hr>
   </div>
