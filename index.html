@@ -4,51 +4,28 @@
 <head>
   <meta charset="UTF-8">
   <title>Tetris - Zig, WebGL, WASM</title>
-  <style>
-    html, body {
-      background-color: black;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: white;
-    }
+  <link rel="stylesheet" href="style.css">
 
-    a:visited {
-      color: white;
-    }
-    
-    .container {
-      width: 600px;
-      margin: 1em auto;
-    }
-
-    .wrapper {
-      text-align: center;
-      position: relative;
-    }
-
-    .overlay {
-      position: absolute;
-      left: 0px;
-      top: 0px;
-      z-index: 10;
-    }
-
-    hr {
-      border-style: dashed;
-    }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Tetris</h1>
-    <p>A simple tetris clone written in the <a href="http://ziglang.org">Zig</a> programming language, running on WebGL and WASM. <a href="https://github.com/raulgrell/tetris">Source</a>.</p>
-    <p> ← ↓ → Move · ⎵ Drop · ↑ Rotate CW · [Shift] Rotate CCW · [Ctrl] Hold · [R]estart · [P]ause</p>
-    <hr>
-    <div class="wrapper">
-      <canvas id="canvas" width="500" height="660"></canvas>
-      <canvas id="canvas2d" class="overlay" width="500" height="660"></canvas>
+  
+  <div class="page">
+    <div class="container">
+      <div class="col">
+        <h1>Tetris</h1>
+        <p>A simple tetris clone written in the <a href="http://ziglang.org">Zig</a> programming language, running on WebGL and WASM. <a href="https://github.com/raulgrell/tetris">Source</a>.</p>
+        <p> ← ↓ → Move · ⎵ Drop · ↑ Rotate CW · [Shift] Rotate CCW</p>
+        <p>[Ctrl] Hold · [R]estart · [P]ause</p>
+      </div>
+      <div class="col">
+        <div class="wrapper">
+          <canvas id="canvas" width="500" height="660"></canvas>
+          <canvas id="canvas2d" class="overlay" width="500" height="660"></canvas>
+        </div>
+      </div>
     </div>
-    <hr>
   </div>
 
   <script src="env.js"></script>
