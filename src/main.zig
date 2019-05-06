@@ -115,6 +115,10 @@ const time_per_level = 60.0;
 const empty_row = []Cell{Cell{ .Empty = {} }} ** grid_width;
 const empty_grid = [][grid_width]Cell{empty_row} ** grid_height;
 
+const AUDIO_BUFFER_SIZE = 1024;
+const a: f32 = 0.2;
+var beep = ([]f32 { a } ** (AUDIO_BUFFER_SIZE / 16) ++ []f32 { -a } ** (AUDIO_BUFFER_SIZE / 16)) ** (AUDIO_BUFFER_SIZE / 16);
+
 export fn onKey(keyCode: c_int, state: u8) void {
   if (state == 0) return;
   const t = &tetris_state;
@@ -557,6 +561,7 @@ fn restartGame(t: *Tetris) void {
 
 fn lockPiece(t: *Tetris) void {
     t.score += 1;
+    c.playAudio(&beep[0], AUDIO_BUFFER_SIZE);
 
     for (t.cur_piece.layout[t.cur_piece_rot]) |row, y| {
         for (row) |is_filled, x| {
