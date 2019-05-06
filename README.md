@@ -1,7 +1,6 @@
 # Tetris 
 
-A simple tetris clone written in
-[zig programming language](https://github.com/andrewrk/zig).
+A simple tetris clone written in [zig programming language](https://github.com/andrewrk/zig).
 
 ## Controls
 
@@ -23,4 +22,4 @@ A simple tetris clone written in
 zig build-exe -target wasm32-freestanding --release-small src/main.zig
 ```
 
-And run a local http server on the project root
+Run a local http server on the project root and access it from a browser that supports WebGL2
