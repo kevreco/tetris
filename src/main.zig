@@ -115,9 +115,17 @@ const time_per_level = 60.0;
 const empty_row = []Cell{Cell{ .Empty = {} }} ** grid_width;
 const empty_grid = [][grid_width]Cell{empty_row} ** grid_height;
 
-const AUDIO_BUFFER_SIZE = 1024;
-const a: f32 = 0.2;
-var beep = ([]f32 { a } ** (AUDIO_BUFFER_SIZE / 16) ++ []f32 { -a } ** (AUDIO_BUFFER_SIZE / 16)) ** (AUDIO_BUFFER_SIZE / 16);
+const AUDIO_BUFFER_SIZE = 2048;
+const a: f32 = 0.1;
+
+var beep = blk: {
+    @setEvalBranchQuota(AUDIO_BUFFER_SIZE * 2 + 1);
+    var b = []f32 { 0 } ** AUDIO_BUFFER_SIZE;
+    for (b) |*x, i| {
+        x.* = if ((i / 64) % 2 == 1) a else -a;
+    }
+    break :blk b;
+};
 
 export fn onKey(keyCode: c_int, state: u8) void {
   if (state == 0) return;
